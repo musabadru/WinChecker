@@ -35,6 +35,7 @@ namespace WinChecker.App
                     services.AddSingleton(new DatabaseMigrator(connectionString));
                     services.AddSingleton<IAppRepository>(new AppRepository(connectionString));
                     services.AddSingleton<Win32AppEnumerator>();
+                    services.AddSingleton<UwpAppEnumerator>();
                     
                     // ViewModels
                     
