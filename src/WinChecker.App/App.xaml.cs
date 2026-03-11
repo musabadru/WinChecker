@@ -1,8 +1,11 @@
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using WinChecker.Data;
 using WinChecker.Core.Services;
 using WinChecker.Core.Repositories;
+using WinChecker.Core.Models;
 using WinChecker.Data.Repositories;
 using WinChecker.Enumeration;
 using WinChecker.PE;
@@ -20,7 +23,8 @@ namespace WinChecker.App
         private Window? _window;
         public Window? MainWindow => _window;
 
-        public static IServiceProvider Services { get; private set; } = null!;
+        private static IHost? _host;
+        public static IServiceProvider Services => _host?.Services ?? throw new InvalidOperationException("App is not initialized.");
 
         public App()
         {
@@ -30,27 +34,80 @@ namespace WinChecker.App
 
         private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
         {
+            var logger = Services.GetService<ILogger<App>>();
+            logger?.LogCritical(e.Exception, "Unhandled Exception: {Message}", e.Message);
+            
+            // Emergency fallback log
             try
             {
                 var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinChecker");
                 Directory.CreateDirectory(appDataPath);
-                var logPath = Path.Combine(appDataPath, "error.log");
-                File.AppendAllText(logPath, $"{DateTime.Now}: Unhandled Exception{Environment.NewLine}{e.Exception}{Environment.NewLine}{Environment.NewLine}");
+                File.AppendAllText(Path.Combine(appDataPath, "critical.log"), $"{DateTime.Now}: {e.Exception}{Environment.NewLine}");
             }
             catch { }
-            Debug.WriteLine($"Unhandled Exception: {e.Exception}");
         }
 
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
             try
             {
-                ConfigureServices();
-                Services.GetRequiredService<DatabaseMigrator>().Migrate();
+                _host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
+                    .ConfigureLogging(builder =>
+                    {
+                        builder.AddDebug();
+                        builder.AddConsole();
+                    })
+                    .ConfigureServices((context, services) =>
+                    {
+                        var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinChecker");
+                        
+                        try { Directory.CreateDirectory(appDataPath); }
+                        catch (Exception ex) { Debug.WriteLine($"Failed to create app data directory: {ex}"); }
+
+                        var dbPath = Path.Combine(appDataPath, "winchecker.db");
+                        
+                        // Configure Options
+                        services.Configure<DatabaseOptions>(options => 
+                        {
+                            options.ConnectionString = $"Data Source={dbPath}";
+                        });
+
+                        // Core and Data Services
+                        services.AddSingleton<DatabaseMigrator>();
+                        services.AddSingleton<IAppRepository, AppRepository>();
+                        services.AddSingleton<Win32AppEnumerator>();
+                        services.AddSingleton<UwpAppEnumerator>();
+                        services.AddSingleton<IAppScannerService, AppScannerService>();
+                        services.AddSingleton<IDllResolver, DllResolver>();
+                        services.AddSingleton<IPeParser, PeParser>();
+
+                        // ViewModels
+                        services.AddTransient<AppListViewModel>();
+                        services.AddTransient<MainPage>();
+                    })
+                    .Build();
+
+                await _host.StartAsync();
+
+                // Run migration on background thread
+                _ = Task.Run(() => 
+                {
+                    try
+                    {
+                        Services.GetRequiredService<DatabaseMigrator>().Migrate();
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = Services.GetService<ILogger<App>>();
+                        logger?.LogError(ex, "Database migration failed.");
+                    }
+                });
 
                 _window = new Window();
                 _window.ExtendsContentIntoTitleBar = true;
-                _window.SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
+                
+                // Safe Backdrop application
+                SetMicaBackdrop(_window);
 
                 if (_window.Content is not Frame rootFrame)
                 {
@@ -68,25 +125,21 @@ namespace WinChecker.App
             }
         }
 
-        private void ConfigureServices()
+        private void SetMicaBackdrop(Window window)
         {
-            var services = new ServiceCollection();
+            if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported())
+            {
+                window.SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
+            }
+        }
 
-            var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinChecker");
-            Directory.CreateDirectory(appDataPath);
-            var dbPath = Path.Combine(appDataPath, "winchecker.db");
-            var connectionString = $"Data Source={dbPath}";
-
-            services.AddSingleton(new DatabaseMigrator(connectionString));
-            services.AddSingleton<IAppRepository>(new AppRepository(connectionString));
-            services.AddSingleton<Win32AppEnumerator>();
-            services.AddSingleton<UwpAppEnumerator>();
-            services.AddSingleton<IAppScannerService, AppScannerService>();
-            services.AddSingleton<IDllResolver, DllResolver>();
-            services.AddSingleton<IPeParser, PeParser>();
-            services.AddTransient<AppListViewModel>();
-
-            Services = services.BuildServiceProvider();
+        public static async Task ShutdownAsync()
+        {
+            if (_host != null)
+            {
+                await _host.StopAsync();
+                _host.Dispose();
+            }
         }
     }
 }

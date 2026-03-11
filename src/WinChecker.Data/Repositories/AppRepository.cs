@@ -1,5 +1,6 @@
 using Dapper;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Options;
 using WinChecker.Core;
 using WinChecker.Core.Models;
 using WinChecker.Core.Repositories;
@@ -10,9 +11,9 @@ public class AppRepository : IAppRepository
 {
     private readonly string _connectionString;
 
-    public AppRepository(string connectionString)
+    public AppRepository(IOptions<DatabaseOptions> options)
     {
-        _connectionString = connectionString;
+        _connectionString = options.Value.ConnectionString;
     }
 
     public async Task<IEnumerable<InstalledApp>> GetAllAppsAsync()

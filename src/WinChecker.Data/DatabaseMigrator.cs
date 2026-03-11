@@ -1,6 +1,8 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using System.Reflection;
+using WinChecker.Core.Models;
 
 namespace WinChecker.Data;
 
@@ -8,9 +10,9 @@ public class DatabaseMigrator
 {
     private readonly string _connectionString;
 
-    public DatabaseMigrator(string connectionString)
+    public DatabaseMigrator(IOptions<DatabaseOptions> options)
     {
-        _connectionString = connectionString;
+        _connectionString = options.Value.ConnectionString;
     }
 
     public void Migrate()
@@ -20,7 +22,8 @@ public class DatabaseMigrator
 
         using var command = connection.CreateCommand();
         command.CommandText = "PRAGMA user_version;";
-        var currentVersion = (long)(command.ExecuteScalar() ?? 0L);
+        var result = command.ExecuteScalar();
+        var currentVersion = result is long l ? l : 0L;
 
         var provider = new EmbeddedFileProvider(typeof(DatabaseMigrator).Assembly, "WinChecker.Data.Migrations");
         var contents = provider.GetDirectoryContents("");

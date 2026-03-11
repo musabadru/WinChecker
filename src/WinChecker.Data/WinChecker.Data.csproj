@@ -8,6 +8,7 @@
     <PackageReference Include="Dapper" Version="2.1.72" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.4" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="10.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.4" />
   </ItemGroup>
 
   <ItemGroup>
