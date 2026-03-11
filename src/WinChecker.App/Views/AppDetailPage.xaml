@@ -66,71 +66,103 @@
 
             <!-- Content Area -->
             <Grid Grid.Row="1">
-                <ProgressBar VerticalAlignment="Top" IsIndeterminate="True" 
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- ProgressBar -->
+                    <RowDefinition Height="Auto"/> <!-- App Info card (always visible) -->
+                    <RowDefinition Height="Auto"/> <!-- Error state -->
+                    <RowDefinition Height="*"/>    <!-- PE Technical Pivot -->
+                </Grid.RowDefinitions>
+
+                <ProgressBar Grid.Row="0" VerticalAlignment="Top" IsIndeterminate="True"
                              Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-                             Margin="1,-6,1,0" Canvas.ZIndex="1"/>
+                             Margin="1,0,1,0"/>
 
-                <Pivot Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter='Inverted', Mode=OneWay}">
-                    <PivotItem Header="Overview">
+                <!-- App Info Card — always visible -->
+                <Border Grid.Row="1" Style="{StaticResource SurfaceCardStyle}" Margin="0,16,0,0">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Application Details" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
+                        <Grid ColumnSpacing="24" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Version" Opacity="0.6"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.App.Version, Mode=OneWay}"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Architecture" Opacity="0.6"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.App.Architecture, Mode=OneWay}"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Install Date" Opacity="0.6"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.App.InstallDate, Mode=OneWay}"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Install Path" Opacity="0.6"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{x:Bind ViewModel.App.InstallPath, Mode=OneWay}" TextWrapping="WrapWholeWords"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Error State -->
+                <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16"
+                            Margin="0,16,0,0"
+                            Visibility="{x:Bind ViewModel.ErrorMessage, Converter={StaticResource IntToVisibilityConverter}, Mode=OneWay}">
+                    <FontIcon Glyph="&#xE783;" FontSize="64" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                    <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                               MaxWidth="400" TextWrapping="Wrap" TextAlignment="Center"
+                               Style="{ThemeResource BodyStrongTextBlockStyle}"/>
+                </StackPanel>
+
+                <!-- PE Technical Pivot — visible only when Metadata is available -->
+                <Pivot Grid.Row="3" Margin="0,8,0,0"
+                       Visibility="{x:Bind ViewModel.Metadata, Converter={StaticResource IntToVisibilityConverter}, Mode=OneWay}">
+
+                    <PivotItem Header="PE Info">
                         <ScrollViewer>
-                            <StackPanel Spacing="16" Margin="0,16,0,0">
-                                <!-- App Info Card -->
-                                <Border Style="{StaticResource SurfaceCardStyle}">
-                                    <StackPanel Spacing="12">
-                                        <TextBlock Text="Application Details" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
-                                        <Grid ColumnSpacing="24" RowSpacing="8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                            <StackPanel Spacing="8" Margin="0,8,0,0">
+                                <Grid ColumnSpacing="24" RowSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Version" Opacity="0.6"/>
-                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.App.Version, Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Subsystem" Opacity="0.6"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.Metadata.Subsystem, Mode=OneWay}"/>
 
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Architecture" Opacity="0.6"/>
-                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.App.Architecture, Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Linker Version" Opacity="0.6"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.Metadata.LinkerVersion, Mode=OneWay}"/>
 
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Install Date" Opacity="0.6"/>
-                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.App.InstallDate, Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Compile Time" Opacity="0.6"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.Metadata.CompileTime, Mode=OneWay}"/>
+                                </Grid>
 
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Install Path" Opacity="0.6"/>
-                                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{x:Bind ViewModel.App.InstallPath, Mode=OneWay}" TextWrapping="WrapWholeWords"/>
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- PE Metadata Card -->
-                                <Border Style="{StaticResource SurfaceCardStyle}" 
-                                        Visibility="{x:Bind ViewModel.Metadata, Converter={StaticResource IntToVisibilityConverter}, Mode=OneWay}">
-                                    <StackPanel Spacing="12">
-                                        <TextBlock Text="Binary Metadata (PE)" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
-                                        <Grid ColumnSpacing="24" RowSpacing="8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Subsystem" Opacity="0.6"/>
-                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.Metadata.Subsystem, Mode=OneWay}"/>
-
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Linker Version" Opacity="0.6"/>
-                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.Metadata.LinkerVersion, Mode=OneWay}"/>
-
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Compile Time" Opacity="0.6"/>
-                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.Metadata.CompileTime, Mode=OneWay}"/>
-                                        </Grid>
-                                    </StackPanel>
+                                <!-- VersionInfo -->
+                                <Border Visibility="{x:Bind ViewModel.VersionInfoItems.Count, Converter={StaticResource IntToVisibilityConverter}, Mode=OneWay}"
+                                        Margin="0,12,0,0">
+                                    <ListView ItemsSource="{x:Bind ViewModel.VersionInfoItems, Mode=OneWay}" SelectionMode="None">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:VersionEntry">
+                                                <Grid ColumnSpacing="16" Margin="0,2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="180"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{x:Bind Key}" Opacity="0.6" TextWrapping="NoWrap"/>
+                                                    <TextBlock Grid.Column="1" Text="{x:Bind Value}" TextWrapping="WrapWholeWords"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
                                 </Border>
                             </StackPanel>
                         </ScrollViewer>
@@ -147,16 +179,16 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        
+
                                         <FontIcon Grid.Column="0" Glyph="&#xE168;" FontSize="16"
                                                   Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
-                                        
+
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold"/>
                                             <TextBlock Text="{x:Bind ResolvedPath}" FontSize="11" Opacity="0.6" TextWrapping="NoWrap"/>
                                         </StackPanel>
 
-                                        <Border Grid.Column="2" 
+                                        <Border Grid.Column="2"
                                                 Visibility="{x:Bind IsMissing, Mode=OneWay}"
                                                 Background="{ThemeResource SystemFillColorCriticalBrush}"
                                                 CornerRadius="4" Padding="8,2">
@@ -178,16 +210,17 @@
                             </ListView.ItemTemplate>
                         </ListView>
                     </PivotItem>
-                </Pivot>
 
-                <!-- Error State -->
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16"
-                            Visibility="{x:Bind ViewModel.ErrorMessage, Converter={StaticResource IntToVisibilityConverter}, Mode=OneWay}">
-                    <FontIcon Glyph="&#xE783;" FontSize="64" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
-                    <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" 
-                               MaxWidth="400" TextWrapping="Wrap" TextAlignment="Center"
-                               Style="{ThemeResource BodyStrongTextBlockStyle}"/>
-                </StackPanel>
+                    <PivotItem Header="Manifest"
+                               Visibility="{x:Bind ViewModel.Metadata.Manifest, Converter={StaticResource IntToVisibilityConverter}, Mode=OneWay}">
+                        <ScrollViewer>
+                            <TextBlock Text="{x:Bind ViewModel.Metadata.Manifest, Mode=OneWay}"
+                                       FontFamily="Consolas" FontSize="11"
+                                       TextWrapping="Wrap" IsTextSelectionEnabled="True"
+                                       Margin="0,8,0,0"/>
+                        </ScrollViewer>
+                    </PivotItem>
+                </Pivot>
             </Grid>
         </Grid>
     </Grid>

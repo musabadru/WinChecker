@@ -12,6 +12,8 @@ namespace WinChecker.App.Views
             RootNavigationView.SelectedItem = RootNavigationView.MenuItems[0];
             
             this.Loaded += ShellPage_Loaded;
+            ContentFrame.Navigated += ContentFrame_Navigated;
+            RootNavigationView.BackRequested += RootNavigationView_BackRequested;
         }
 
         private void ShellPage_Loaded(object sender, RoutedEventArgs e)
@@ -26,6 +28,19 @@ namespace WinChecker.App.Views
             }
             // SelectedItem set in ctor doesn't fire SelectionChanged — navigate explicitly
             ContentFrame.Navigate(typeof(MainPage));
+        }
+
+        private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
+        {
+            RootNavigationView.IsBackEnabled = ContentFrame.CanGoBack;
+            if (ContentFrame.SourcePageType == typeof(MainPage))
+                RootNavigationView.SelectedItem = RootNavigationView.MenuItems[0];
+        }
+
+        private void RootNavigationView_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
+        {
+            if (ContentFrame.CanGoBack)
+                ContentFrame.GoBack();
         }
 
         private void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

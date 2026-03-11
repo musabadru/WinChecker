@@ -1,11 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
 using System.IO;
 using WinChecker.Core;
 using WinChecker.Core.Models;
 using WinChecker.Core.Services;
 
 namespace WinChecker.App.ViewModels;
+
+public record VersionEntry(string Key, string Value);
 
 public partial class AppDetailViewModel : ObservableObject
 {
@@ -22,6 +25,8 @@ public partial class AppDetailViewModel : ObservableObject
 
     [ObservableProperty]
     private string? _errorMessage;
+
+    public ObservableCollection<VersionEntry> VersionInfoItems { get; } = new();
 
     public AppDetailViewModel(IPeParser peParser)
     {
@@ -54,6 +59,14 @@ public partial class AppDetailViewModel : ObservableObject
             if (targetFile != null)
             {
                 Metadata = await _peParser.ParseMetadataAsync(targetFile);
+
+                VersionInfoItems.Clear();
+                if (Metadata.VersionInfo != null)
+                    foreach (var kv in Metadata.VersionInfo)
+                        VersionInfoItems.Add(new VersionEntry(kv.Key, kv.Value));
+
+                if (Metadata.Architecture != Architecture.Unknown)
+                    App.Architecture = Metadata.Architecture;
             }
             else
             {
