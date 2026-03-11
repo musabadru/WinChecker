@@ -6,113 +6,157 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:WinChecker.App.ViewModels"
     xmlns:models="using:WinChecker.Core"
+    xmlns:animations="using:CommunityToolkit.WinUI.Animations"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="Transparent">
+
+    <animations:Implicit.ShowAnimations>
+        <animations:TranslationAnimation From="0,100,0" To="0,0,0" Duration="0:0:0.25" />
+        <animations:OpacityAnimation From="0" To="1" Duration="0:0:0.25" />
+    </animations:Implicit.ShowAnimations>
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="32"/> <!-- Title Bar Drag Area -->
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="1000*" MaxWidth="1600" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <!-- Custom Title Bar Drag Area -->
-        <Border Grid.Row="0" x:Name="AppTitleBar" Background="Transparent"/>
+        <Grid Grid.Column="1" Margin="32,0,32,32">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Header -->
+                <RowDefinition Height="Auto"/> <!-- Toolbar -->
+                <RowDefinition Height="*"/>    <!-- Content -->
+            </Grid.RowDefinitions>
 
-        <!-- 3. Page Header -->
-        <StackPanel Grid.Row="1" Margin="32,8,32,0" Spacing="8">
-            <TextBlock Text="Installed Applications" Style="{ThemeResource TitleLargeTextBlockStyle}"/>
-            <TextBlock Text="Browse and analyze installed Win32 and UWP applications on your system." 
-                       Style="{ThemeResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-        </StackPanel>
+            <!-- 3. Page Header -->
+            <Grid Grid.Row="0" Margin="0,32,0,24" ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-        <!-- 5. List Toolbar -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="32,24,32,12" Spacing="12">
-            <AutoSuggestBox PlaceholderText="Search applications..." 
-                            Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Width="300"
-                            VerticalAlignment="Center"/>
-            <Button Command="{x:Bind ViewModel.ScanAppsCommand}"
-                    Style="{ThemeResource AccentButtonStyle}"
-                    VerticalAlignment="Center">
-                <Button.Content>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE72C;" FontSize="16"/>
-                        <TextBlock Text="Refresh"/>
-                    </StackPanel>
-                </Button.Content>
-            </Button>
-            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" 
-                          Width="24" Height="24" Margin="12,0,0,0"
-                          VerticalAlignment="Center"/>
-        </StackPanel>
+                <FontIcon Grid.Column="0" Glyph="&#xE71D;" FontSize="50" Width="60" Height="60" 
+                          Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
 
-        <!-- 5. List View -->
-        <ListView Grid.Row="3"
-                  ItemsSource="{x:Bind ViewModel.Apps}"
-                  SelectionMode="None"
-                  Margin="32,12,32,0">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:InstalledApp">
-                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Padding="16"
-                            Margin="0,0,0,8" HorizontalAlignment="Stretch">
-                        <Grid ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="0">
+                    <TextBlock Text="Installed Applications" 
+                               FontFamily="Segoe UI Variable Display"
+                               FontSize="30" FontWeight="Bold" />
+                    <TextBlock Text="Browse and analyze installed Win32 and UWP applications on your system." 
+                               FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                </StackPanel>
 
-                            <Grid Grid.Column="0" Width="32" Height="32" VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE7AC;" 
-                                          FontSize="20"
-                                          HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
-                                <Image Source="{x:Bind IconPath, Mode=OneWay}" 
-                                       Stretch="Uniform"
-                                       Width="32" Height="32"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Grid>
+                <Button Grid.Column="2" VerticalAlignment="Center" 
+                        Command="{x:Bind ViewModel.ScanAppsCommand}"
+                        Style="{ThemeResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="Refresh application list">
+                    <FontIcon Glyph="&#xE72C;" FontSize="16"/>
+                </Button>
+            </Grid>
 
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                <TextBlock Text="{x:Bind Name}" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
-                                <TextBlock Text="{x:Bind Publisher}" Style="{ThemeResource CaptionTextBlockStyle}"/>
-                            </StackPanel>
+            <!-- 5. List Toolbar -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12" Spacing="12">
+                <AutoSuggestBox PlaceholderText="Search applications..." 
+                                Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                QueryIcon="Find"
+                                Width="300"
+                                VerticalAlignment="Center"/>
+            </StackPanel>
 
-                            <Border Grid.Column="2" 
-                                    Background="{ThemeResource SystemAccentColor}"
-                                    Opacity="0.8"
-                                    CornerRadius="4" 
-                                    Padding="8,2"
-                                    VerticalAlignment="Center">
-                                <TextBlock Text="{x:Bind Architecture}" 
-                                           Style="{ThemeResource CaptionTextBlockStyle}"
-                                           Foreground="White"/>
+            <!-- 7. Data List Area -->
+            <Grid Grid.Row="2">
+                <!-- Page-Level Loading Indicator -->
+                <ProgressBar VerticalAlignment="Top" 
+                             IsIndeterminate="True" 
+                             Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                             Margin="1,-6,1,0" Canvas.ZIndex="1"/>
+
+                <ListView ItemsSource="{x:Bind ViewModel.Apps}"
+                          SelectionMode="None"
+                          Padding="0,0,0,12">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:InstalledApp">
+                            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="16"
+                                    Margin="0,0,0,8" 
+                                    HorizontalAlignment="Stretch">
+                                <Border.BackgroundTransition>
+                                    <BrushTransition Duration="0:0:0.083" />
+                                </Border.BackgroundTransition>
+                                
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="0" Width="40" Height="40" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE7AC;" 
+                                                  FontSize="24"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                                                  Opacity="0.2"/>
+                                        <Image Source="{x:Bind IconPath, Mode=OneWay}" 
+                                               Stretch="Uniform"
+                                               Width="40" Height="40"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                        <TextBlock Text="{x:Bind Name}" 
+                                                   FontFamily="Segoe UI Variable Text"
+                                                   FontSize="14" FontWeight="SemiBold"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{x:Bind Publisher}" 
+                                                       FontSize="11" Opacity="0.8"/>
+                                            <TextBlock Text="•" FontSize="11" Opacity="0.5"/>
+                                            <TextBlock Text="{x:Bind Version}" 
+                                                       FontSize="11" Opacity="0.5"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <Border Grid.Column="2" 
+                                            Background="{ThemeResource SystemAccentColor}"
+                                            Opacity="0.8"
+                                            CornerRadius="4" 
+                                            Padding="8,2"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind Architecture}" 
+                                                   FontSize="11" FontWeight="Medium"
+                                                   Foreground="White"/>
+                                    </Border>
+                                </Grid>
                             </Border>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                    <Setter Property="Padding" Value="0"/>
-                </Style>
-            </ListView.ItemContainerStyle>
-        </ListView>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Padding" Value="0"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
 
-        <!-- 12. Empty State -->
-        <StackPanel Grid.Row="3" 
-                    Visibility="{x:Bind ViewModel.Apps.Count, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter='Inverted', Mode=OneWay}"
-                    VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
-            <FontIcon Glyph="&#xE9CE;" FontSize="64" Foreground="{ThemeResource TextFillColorDisabledBrush}"/>
-            <TextBlock Text="No applications found" Style="{ThemeResource BodyStrongTextBlockStyle}" HorizontalAlignment="Center"/>
-            <Button Content="Start Initial Scan" Command="{x:Bind ViewModel.ScanAppsCommand}" HorizontalAlignment="Center"/>
-        </StackPanel>
+                <!-- Empty State Overlay -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16"
+                            Visibility="{x:Bind ViewModel.Apps.Count, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter='Inverted', Mode=OneWay}">
+                    <TextBlock Text="No applications found" 
+                               FontFamily="Segoe UI Variable Display"
+                               FontSize="30" FontWeight="Bold" Opacity="0.5"
+                               HorizontalAlignment="Center"/>
+                    <Button Content="Start Initial Scan" 
+                            Command="{x:Bind ViewModel.ScanAppsCommand}" 
+                            Style="{ThemeResource AccentButtonStyle}"
+                            HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>

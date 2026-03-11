@@ -116,7 +116,7 @@ namespace WinChecker.App
                     _window.Content = rootFrame;
                 }
 
-                rootFrame.Navigate(typeof(MainPage), e.Arguments);
+                rootFrame.Navigate(typeof(ShellPage), e.Arguments);
                 _window.Activate();
             }
             catch (Exception ex)
