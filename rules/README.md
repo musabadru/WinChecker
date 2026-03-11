@@ -1,0 +1,1 @@
+# WinChecker rules bundle — see docs/rules-format.md

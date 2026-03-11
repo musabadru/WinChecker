@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WinChecker.App/WinChecker.App.csproj">
+      <Platform Project="x86" />
+    </Project>
+    <Project Path="src/WinChecker.Core/WinChecker.Core.csproj" />
+    <Project Path="src/WinChecker.Data/WinChecker.Data.csproj" />
+    <Project Path="src/WinChecker.Detection/WinChecker.Detection.csproj" />
+    <Project Path="src/WinChecker.Enumeration/WinChecker.Enumeration.csproj" />
+    <Project Path="src/WinChecker.PE/WinChecker.PE.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WinChecker.Core.Tests/WinChecker.Core.Tests.csproj" />
+    <Project Path="tests/WinChecker.Data.Tests/WinChecker.Data.Tests.csproj" />
+    <Project Path="tests/WinChecker.Detection.Tests/WinChecker.Detection.Tests.csproj" />
+    <Project Path="tests/WinChecker.Enumeration.Tests/WinChecker.Enumeration.Tests.csproj" />
+    <Project Path="tests/WinChecker.PE.Tests/WinChecker.PE.Tests.csproj" />
+  </Folder>
+</Solution>

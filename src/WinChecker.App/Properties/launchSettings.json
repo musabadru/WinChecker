@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "WinChecker.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "WinChecker.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
