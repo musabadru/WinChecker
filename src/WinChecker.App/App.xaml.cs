@@ -2,6 +2,8 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using WinChecker.Data;
+using WinChecker.Core.Services;
+using WinChecker.Enumeration;
 using System.IO;
 
 namespace WinChecker.App
@@ -36,6 +38,7 @@ namespace WinChecker.App
                     services.AddSingleton<IAppRepository>(new AppRepository(connectionString));
                     services.AddSingleton<Win32AppEnumerator>();
                     services.AddSingleton<UwpAppEnumerator>();
+                    services.AddSingleton<IAppScannerService, AppScannerService>();
                     
                     // ViewModels
                     
