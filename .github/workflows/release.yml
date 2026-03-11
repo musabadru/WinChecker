@@ -34,7 +34,7 @@ jobs:
 
       - name: Run Versionize
         id: versionize
-        run: versionize release --changelog-all
+        run: versionize --help; versionize
         continue-on-error: true
 
       - name: Push changes and tag
