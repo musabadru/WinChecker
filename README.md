@@ -86,7 +86,7 @@ Detects which runtimes an app relies on:
 ### Build
 
 ```bash
-git clone https://github.com/yourname/winchecker
+git clone https://github.com/musabadru/winchecker
 cd winchecker
 dotnet restore
 dotnet build

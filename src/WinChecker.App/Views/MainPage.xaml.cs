@@ -1,3 +1,6 @@
+using WinChecker.App.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace WinChecker.App.Views
 {
     /// <summary>
@@ -5,14 +8,22 @@ namespace WinChecker.App.Views
     /// </summary>
     public partial class MainPage : Page
     {
-        int count = 0;
+        public AppListViewModel ViewModel { get; }
 
         public MainPage()
         {
             this.InitializeComponent();
+            ViewModel = App.Host.Services.GetRequiredService<AppListViewModel>();
+            
+            this.Loaded += MainPage_Loaded;
         }
 
-        private void OnCountClicked(object sender, RoutedEventArgs e)
-            => txtCount.Text = $"Current count: {count++}";
+        private async void MainPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.Apps.Count == 0)
+            {
+                await ViewModel.ScanAppsCommand.ExecuteAsync(null);
+            }
+        }
     }
 }
