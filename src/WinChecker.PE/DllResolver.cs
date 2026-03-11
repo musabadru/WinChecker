@@ -28,7 +28,10 @@ public class DllResolver : IDllResolver
         // 2. KnownDLLs check
         if (KnownDlls.Contains(dllName.ToLowerInvariant()))
         {
-            var systemPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
+            var systemPath = appArchitecture == Architecture.X86 
+                ? Environment.GetFolderPath(Environment.SpecialFolder.SystemX86)
+                : Environment.GetFolderPath(Environment.SpecialFolder.System);
+            
             var path = Path.Combine(systemPath, dllName);
             if (File.Exists(path)) return path;
         }
