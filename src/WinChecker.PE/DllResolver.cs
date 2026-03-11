@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using System.IO;
 using WinChecker.Core;
@@ -7,13 +8,20 @@ namespace WinChecker.PE;
 
 public class DllResolver : IDllResolver
 {
-    private static readonly string[] SystemPaths = 
+    private static readonly string[] SystemPaths =
     {
         Environment.GetFolderPath(Environment.SpecialFolder.System),
         Environment.GetFolderPath(Environment.SpecialFolder.SystemX86)
     };
 
-    private static readonly HashSet<string> KnownDlls = LoadKnownDlls();
+    private readonly ILogger<DllResolver> _logger;
+    private readonly HashSet<string> _knownDlls;
+
+    public DllResolver(ILogger<DllResolver> logger)
+    {
+        _logger = logger;
+        _knownDlls = LoadKnownDlls();
+    }
 
     public string? ResolveDllPath(string dllName, string appDirectory, Architecture appArchitecture)
     {
@@ -26,12 +34,12 @@ public class DllResolver : IDllResolver
         }
 
         // 2. KnownDLLs check
-        if (KnownDlls.Contains(dllName.ToLowerInvariant()))
+        if (_knownDlls.Contains(dllName.ToLowerInvariant()))
         {
-            var systemPath = appArchitecture == Architecture.X86 
+            var systemPath = appArchitecture == Architecture.X86
                 ? Environment.GetFolderPath(Environment.SpecialFolder.SystemX86)
                 : Environment.GetFolderPath(Environment.SpecialFolder.System);
-            
+
             var path = Path.Combine(systemPath, dllName);
             if (File.Exists(path)) return path;
         }
@@ -49,7 +57,7 @@ public class DllResolver : IDllResolver
         {
             var path = Path.Combine(sysWow64, dllName);
             if (File.Exists(path)) return path;
-            
+
             path = Path.Combine(sys32, dllName); // Fallback
             if (File.Exists(path)) return path;
         }
@@ -75,14 +83,14 @@ public class DllResolver : IDllResolver
                     var fullPath = Path.Combine(p, dllName);
                     if (File.Exists(fullPath)) return fullPath;
                 }
-                catch { /* Ignore invalid paths */ }
+                catch (Exception ex) { _logger.LogDebug(ex, "Skipping invalid PATH entry: {Entry}", p); }
             }
         }
 
         return null;
     }
 
-    private static HashSet<string> LoadKnownDlls()
+    private HashSet<string> LoadKnownDlls()
     {
         var dlls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         try
@@ -100,7 +108,7 @@ public class DllResolver : IDllResolver
                 }
             }
         }
-        catch { /* Fallback to empty if registry access fails */ }
+        catch (Exception ex) { _logger.LogWarning(ex, "Failed to read KnownDLLs from registry"); }
         return dlls;
     }
 }

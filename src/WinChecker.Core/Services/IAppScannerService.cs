@@ -4,5 +4,6 @@ namespace WinChecker.Core.Services;
 
 public interface IAppScannerService
 {
-    Task<IEnumerable<InstalledApp>> ScanAllAppsAsync();
+    IAsyncEnumerable<InstalledApp> ScanAllAppsAsync();
+    Task<IEnumerable<InstalledApp>> GetCachedAppsAsync();
 }

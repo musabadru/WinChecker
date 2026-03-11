@@ -8,16 +8,20 @@ using WinChecker.Core;
 using WinChecker.Core.Models;
 using WinChecker.Core.Services;
 using AsmResolver;
+using Microsoft.Extensions.Logging;
+using System.Text;
 
 namespace WinChecker.PE;
 
 public class PeParser : IPeParser
 {
     private readonly IDllResolver _dllResolver;
+    private readonly ILogger<PeParser> _logger;
 
-    public PeParser(IDllResolver dllResolver)
+    public PeParser(IDllResolver dllResolver, ILogger<PeParser> logger)
     {
         _dllResolver = dllResolver;
+        _logger = logger;
     }
 
     public async Task<PeMetadata> ParseMetadataAsync(string filePath)
@@ -31,7 +35,7 @@ public class PeParser : IPeParser
             {
                 var peFile = PEFile.FromFile(filePath);
                 var peImage = PEImage.FromFile(peFile);
-                
+
                 // Architecture
                 metadata.Architecture = peFile.FileHeader.Machine switch
                 {
@@ -56,7 +60,7 @@ public class PeParser : IPeParser
                 {
                     var dllName = module.Name ?? "Unknown";
                     var resolvedPath = _dllResolver.ResolveDllPath(dllName, appDirectory, metadata.Architecture);
-                    
+
                     metadata.Dependencies.Add(new DependencyInfo
                     {
                         Name = dllName,
@@ -118,14 +122,63 @@ public class PeParser : IPeParser
             if (versionLang.Contents is IReadableSegment readable)
             {
                 var data = readable.ToArray();
-                // Simple parsing of VS_VERSIONINFO might be complex, so we'll use a basic heuristic or a helper
-                // For now, let's just mark it as found. A full parser would be better.
-                // TODO: Implement a robust VS_VERSIONINFO parser if needed, or use a library.
+                ParseVersionNode(data, 0, result);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to parse VS_VERSIONINFO resource");
+        }
 
         return result;
+    }
+
+    private static string ReadWChar(byte[] data, ref int offset)
+    {
+        int start = offset;
+        while (offset + 1 < data.Length && !(data[offset] == 0 && data[offset + 1] == 0))
+            offset += 2;
+        var value = Encoding.Unicode.GetString(data, start, offset - start);
+        offset += 2; // consume null terminator
+        if (offset % 4 != 0) offset += 4 - (offset % 4);
+        return value;
+    }
+
+    private static void ParseVersionNode(byte[] data, int nodeStart, Dictionary<string, string> result)
+    {
+        if (nodeStart + 6 > data.Length) return;
+        int offset = nodeStart;
+        ushort wLength      = BitConverter.ToUInt16(data, offset); offset += 2;
+        ushort wValueLength = BitConverter.ToUInt16(data, offset); offset += 2;
+        ushort wType        = BitConverter.ToUInt16(data, offset); offset += 2;
+        if (wLength == 0 || nodeStart + wLength > data.Length) return;
+
+        string key = ReadWChar(data, ref offset);
+
+        if (wValueLength > 0)
+        {
+            if (wType == 1) // text String leaf
+            {
+                int byteLen = wValueLength * 2;
+                if (offset + byteLen <= data.Length)
+                    result[key] = Encoding.Unicode.GetString(data, offset, byteLen).TrimEnd('\0');
+            }
+            int advance = wType == 1 ? wValueLength * 2 : wValueLength;
+            offset += advance;
+            if (offset % 4 != 0) offset += 4 - (offset % 4);
+        }
+
+        int nodeEnd = nodeStart + wLength;
+        while (offset < nodeEnd - 6)
+        {
+            if (offset % 4 != 0) offset += 4 - (offset % 4);
+            if (offset >= nodeEnd) break;
+            ushort childLen = BitConverter.ToUInt16(data, offset);
+            if (childLen == 0) break;
+            ParseVersionNode(data, offset, result);
+            offset += childLen;
+            if (offset % 4 != 0) offset += 4 - (offset % 4);
+        }
     }
 
     private string? ExtractManifest(IResourceDirectory resources)

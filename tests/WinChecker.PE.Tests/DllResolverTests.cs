@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using WinChecker.Core;
 using WinChecker.PE;
 using System.IO;
@@ -6,7 +8,7 @@ namespace WinChecker.PE.Tests;
 
 public class DllResolverTests
 {
-    private readonly DllResolver _resolver = new();
+    private readonly DllResolver _resolver = new(Substitute.For<ILogger<DllResolver>>());
 
     [Test]
     public async Task ResolveDllPath_Should_Handle_ApiSet()

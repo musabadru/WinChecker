@@ -92,22 +92,21 @@ namespace WinChecker.App
 
                 await _host.StartAsync();
 
-                // Run migration on background thread
-                _ = Task.Run(() => 
+                // Run migration on background thread; await so the DB is ready before first navigation
+                try
                 {
-                    try
-                    {
-                        Services.GetRequiredService<DatabaseMigrator>().Migrate();
-                    }
-                    catch (Exception ex)
-                    {
-                        var logger = Services.GetService<ILogger<App>>();
-                        logger?.LogError(ex, "Database migration failed.");
-                    }
-                });
+                    await Task.Run(() => Services.GetRequiredService<DatabaseMigrator>().Migrate());
+                }
+                catch (Exception ex)
+                {
+                    var logger = Services.GetService<ILogger<App>>();
+                    logger?.LogError(ex, "Database migration failed.");
+                }
 
                 _window = new Window();
                 _window.ExtendsContentIntoTitleBar = true;
+                // Dispose the host when the window closes
+                _window.Closed += async (_, _) => await ShutdownAsync();
                 
                 // Safe Backdrop application
                 SetMicaBackdrop(_window);
@@ -125,6 +124,9 @@ namespace WinChecker.App
             {
                 Debug.WriteLine($"Startup failed: {ex}");
                 try { File.AppendAllText("startup_crash.log", ex.ToString()); } catch { }
+#if DEBUG
+                throw;  // surface startup failures immediately during development
+#endif
             }
         }
 

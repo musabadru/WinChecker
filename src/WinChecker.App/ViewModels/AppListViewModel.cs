@@ -29,21 +29,22 @@ public partial class AppListViewModel : ObservableObject
         IsLoading = true;
         Apps.Clear();
 
+        // Phase 1: instant cache load
         try
         {
-            var results = await _scannerService.ScanAllAppsAsync();
-            foreach (var app in results)
-            {
+            foreach (var app in await _scannerService.GetCachedAppsAsync())
                 Apps.Add(app);
-            }
         }
-        catch (Exception ex)
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Cache load failed: {ex}"); }
+
+        // Phase 2: live scan replaces stale results
+        try
         {
-            System.Diagnostics.Debug.WriteLine($"Scan failed: {ex}");
+            Apps.Clear();
+            await foreach (var app in _scannerService.ScanAllAppsAsync())
+                Apps.Add(app);
         }
-        finally
-        {
-            IsLoading = false;
-        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Scan failed: {ex}"); }
+        finally { IsLoading = false; }
     }
 }

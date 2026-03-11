@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using System.Drawing;
 using System.IO;
@@ -9,9 +10,11 @@ namespace WinChecker.Enumeration;
 public class IconService : IIconService
 {
     private readonly string _iconCachePath;
+    private readonly ILogger<IconService> _logger;
 
-    public IconService()
+    public IconService(ILogger<IconService> logger)
     {
+        _logger = logger;
         _iconCachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinChecker", "IconCache");
         Directory.CreateDirectory(_iconCachePath);
     }
@@ -48,7 +51,7 @@ public class IconService : IIconService
                         return cachedIconPath;
                     }
                 }
-                catch { /* Ignore extraction errors */ }
+                catch (Exception ex) { _logger.LogDebug(ex, "Icon extraction failed for app {AppId}", app.Id); }
             }
 
             // Strategy 2: Known Names
@@ -98,7 +101,7 @@ public class IconService : IIconService
 
     private string? GetRegistryDisplayIcon(string appId)
     {
-        string[] keys = 
+        string[] keys =
         {
             $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{appId}",
             $@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{appId}"
