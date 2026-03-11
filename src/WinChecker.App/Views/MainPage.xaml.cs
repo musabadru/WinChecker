@@ -15,23 +15,13 @@ namespace WinChecker.App.Views
         public MainPage()
         {
             this.InitializeComponent();
-            ViewModel = App.Host.Services.GetRequiredService<AppListViewModel>();
+            ViewModel = App.Services.GetRequiredService<AppListViewModel>();
             
             this.Loaded += MainPage_Loaded;
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-            // Set the drag region for the custom title bar
-            if (AppTitleBar != null)
-            {
-                var app = Application.Current as App;
-                if (app?.MainWindow != null)
-                {
-                    app.MainWindow.SetTitleBar(AppTitleBar);
-                }
-            }
-
             if (ViewModel.Apps.Count == 0)
             {
                 await ViewModel.ScanAppsAsync();
