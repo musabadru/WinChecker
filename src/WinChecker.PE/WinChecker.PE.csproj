@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="AsmResolver.PE" Version="5.5.1" />
+    <PackageReference Include="AsmResolver.PE.File" Version="5.5.1" />
     <PackageReference Include="dnlib" Version="4.5.0" />
   </ItemGroup>
 

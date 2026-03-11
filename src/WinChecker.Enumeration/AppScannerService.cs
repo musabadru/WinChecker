@@ -1,4 +1,4 @@
-using WinChecker.Core.Models;
+using WinChecker.Core;
 using WinChecker.Core.Services;
 
 namespace WinChecker.Enumeration;

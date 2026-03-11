@@ -1,5 +1,5 @@
 using Microsoft.Win32;
-using WinChecker.Core.Models;
+using WinChecker.Core;
 
 namespace WinChecker.Enumeration;
 

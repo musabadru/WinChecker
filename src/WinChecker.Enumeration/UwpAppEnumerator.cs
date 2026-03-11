@@ -1,5 +1,5 @@
 using Windows.Management.Deployment;
-using WinChecker.Core.Models;
+using WinChecker.Core;
 
 namespace WinChecker.Enumeration;
 

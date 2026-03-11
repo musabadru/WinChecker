@@ -3,7 +3,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using WinChecker.Data;
 using WinChecker.Core.Services;
+using WinChecker.Core.Repositories;
+using WinChecker.Data.Repositories;
 using WinChecker.Enumeration;
+using WinChecker.PE;
 using System.IO;
 
 namespace WinChecker.App
@@ -39,6 +42,7 @@ namespace WinChecker.App
                     services.AddSingleton<Win32AppEnumerator>();
                     services.AddSingleton<UwpAppEnumerator>();
                     services.AddSingleton<IAppScannerService, AppScannerService>();
+                    services.AddSingleton<IPeParser, PeParser>();
                     
                     // ViewModels
                     

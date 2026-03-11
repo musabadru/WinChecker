@@ -1,159 +1,132 @@
-# TODO
+# WinChecker
 
-Granular task list for active development. Tracks Phase 1 in detail; later phases are tracked at a higher level until they become active.
+> A modern Windows application inspector — browse installed apps, analyze PE binaries, detect frameworks and runtimes, and track dependency changes over time.
 
----
-
-## Setup & Scaffolding
-
-- [ ] Create solution: `WinChecker.sln`
-- [ ] Add projects:
-  - [ ] `WinChecker.App` — WinUI 3 application
-  - [ ] `WinChecker.Core` — shared models, interfaces, utilities
-  - [ ] `WinChecker.PE` — PE parsing wrapper
-  - [ ] `WinChecker.Enumeration` — app discovery
-  - [ ] `WinChecker.Detection` — framework detection
-  - [ ] `WinChecker.Data` — SQLite, repositories, snapshot engine
-- [ ] Add NuGet packages:
-  - [ ] `AsmResolver.PE`
-  - [ ] `dnlib`
-  - [ ] `Microsoft.Windows.CsWin32`
-  - [ ] `Microsoft.Data.Sqlite`
-  - [ ] `Dapper`
-  - [ ] `LiveChartsCore.SkiaSharpView.WinUI`
-  - [ ] `CommunityToolkit.WinUI`
-  - [ ] `CommunityToolkit.Mvvm`
-- [ ] Configure `NativeAOT` or self-contained publish profile
-- [ ] Set up `.editorconfig` and code style rules
-- [ ] Initialize SQLite schema migrations (versioned SQL files)
-- [ ] Wire up basic dependency injection (Microsoft.Extensions.DI)
+Inspired by [LibChecker](https://github.com/LibChecker/LibChecker) on Android, WinChecker brings the same philosophy to Windows: a clean, fast, native UI for understanding what's actually running on your machine.
 
 ---
 
-## App Enumeration (`WinChecker.Enumeration`)
+## Features
 
-- [ ] `Win32AppEnumerator`: scan `HKLM\Software\Microsoft\Windows\CurrentVersion\Uninstall`
-- [ ] `Win32AppEnumerator`: scan `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall`
-- [ ] `Win32AppEnumerator`: scan 32-bit hive (`HKLM\Software\WOW6432Node\...`)
-- [ ] Extract fields: DisplayName, DisplayVersion, Publisher, InstallDate, InstallLocation, EstimatedSize
-- [ ] `UwpAppEnumerator`: use `PackageManager` API to list MSIX/UWP packages
-- [ ] Extract UWP fields: PackageFamilyName, version, install location, logo asset path
-- [ ] `PortableAppEnumerator` (stretch for Phase 1): scan user-configured folders for `.exe` files
-- [ ] Merge all sources into unified `InstalledApp` model
-- [ ] Resolve app icon: extract from `.exe` resource or UWP asset
-- [ ] Cache enumeration results to SQLite on first run; detect stale entries on subsequent runs
+### App Browsing
+- Lists all installed applications: Win32, UWP/MSIX, and portable `.exe`s
+- Shows icon, name, version, publisher, install date, and install location
+- Search and filter by name, architecture, framework, or install source
+- Sort by name, size, install date, or architecture
 
----
+### Architecture & Binary Info
+- Detects CPU architecture per binary: x86, x64, ARM, ARM64
+- Reads PE header details: subsystem, linker version, compile timestamp
+- Architecture distribution chart across all installed apps
 
-## PE Parsing (`WinChecker.PE`)
+### Dependency Inspection
+- Lists all imported DLLs for a selected `.exe` or `.dll`
+- Resolves full paths using Windows loader rules (PATH, SxS, API sets)
+- Flags missing or unresolvable dependencies
+- Shows exported functions per DLL
 
-- [ ] `PeParser` service wrapping AsmResolver
-- [ ] Read machine architecture (`IMAGE_FILE_MACHINE_*`) → map to `Architecture` enum (x86/x64/ARM/ARM64)
-- [ ] Read PE subsystem (Console / Windows GUI / etc.)
-- [ ] Read linker version
-- [ ] Read compile timestamp from PE header
-- [ ] Read imported DLL names (`ImportDirectory`)
-- [ ] Resolve each imported DLL to a full filesystem path (see resolution logic below)
-- [ ] Read exported function names (`ExportDirectory`)
-- [ ] Read embedded manifest (`RT_MANIFEST` resource)
-- [ ] Read version info resource (`VS_VERSIONINFO`)
-- [ ] Handle graceful failure: corrupted PE, access denied, packed binary
+### Framework & Runtime Detection
+Detects which runtimes an app relies on:
+- .NET Framework / .NET Core / .NET 5+
+- Visual C++ Redistributable (2015, 2019, 2022)
+- DirectX / Direct3D, OpenGL, Vulkan
+- Windows App SDK / WinUI
+- Electron / CEF (Chromium Embedded Framework)
+- Qt / wxWidgets
+- Java / JRE launcher detection
+- Embedded Python / Node.js runtimes
 
-### DLL Resolution Logic
-- [ ] Check `KnownDLLs` registry key
-- [ ] Check same directory as the executable (DLL search order step 1)
-- [ ] Check `System32` / `SysWOW64`
-- [ ] Walk `PATH` environment variable
-- [ ] Parse app manifest for `dependentAssembly` (SxS)
-- [ ] Identify `api-ms-win-*` virtual DLLs (mark as "API Set — system resolved")
-- [ ] Flag as `Missing` if not found after all steps
+### Library Tags
+- Tags recognized libraries with name, version, and description
+- Links to official docs or GitHub page per library
+- Community-maintainable rules bundle (SQLite-based)
 
----
+### Snapshot & Diff
+- Takes a snapshot of all installed apps and their libraries
+- Compares two snapshots to detect changes after installs or updates
+- Shows added, removed, and changed libraries in a clean diff view
 
-## Data Layer (`WinChecker.Data`)
+### Package Characteristics
+- Code signing status (signed / unsigned / expired)
+- Installer type detection: MSI, MSIX, NSIS, Inno Setup, Squirrel
+- Self-contained vs framework-dependent deployment
+- Packed/obfuscated binary detection (via DIE)
+- UWP capability declarations
 
-- [ ] SQLite schema v1:
-  - [ ] `apps` table (id, name, version, publisher, architecture, install_date, install_path, source)
-  - [ ] `dependencies` table (app_id, dll_name, resolved_path, is_missing)
-  - [ ] `frameworks` table (id, name, version, description, rules_ref)
-  - [ ] `app_frameworks` join table
-  - [ ] `snapshots` table (id, taken_at, label)
-  - [ ] `snapshot_apps` (snapshot_id, app_id, state_json)
-- [ ] `AppRepository`: CRUD for apps + dependencies
-- [ ] `SnapshotRepository`: save/load/list/delete snapshots
-- [ ] SQLite FTS5 virtual table over `apps` (name, publisher)
-- [ ] Schema migration runner (sequential SQL files, version tracked in `pragma user_version`)
+### Installation Source Tracking
+- Identifies install origin: Microsoft Store, winget, Chocolatey, or manual
+- Links to store page or package manager entry where available
 
 ---
 
-## Detection Engine (`WinChecker.Detection`)
+## Tech Stack
 
-- [ ] `DetectionResult` model: framework name, version (nullable), confidence, evidence
-- [ ] `IDllNameDetector`: detect framework from imported DLL names (e.g. `mscoree.dll` → .NET Framework)
-- [ ] `IFilePresenceDetector`: detect framework from files present alongside the binary
-- [ ] `DieCliShim`: shell out to `die.exe` / `diec.exe`, parse JSON output
-- [ ] Map DIE results to internal `FrameworkTag` records
-- [ ] .NET version detector (via dnlib: read `TargetFrameworkAttribute` or `<TargetFramework>`)
-- [ ] VC++ runtime detector (MSVCR/MSVCP DLL name + version suffix)
-- [ ] Electron detector: `electron.exe` in same dir, or `ELECTRON_RUN_AS_NODE` in resources
-- [ ] Qt detector: `Qt5Core.dll` / `Qt6Core.dll` presence + version from PE version resource
-
----
-
-## UI (`WinChecker.App`)
-
-### App List Page
-- [ ] `AppListViewModel`: exposes observable collection of apps, search query, sort/filter state
-- [ ] `AppListPage`: ListView/ItemsRepeater showing app rows
-- [ ] App row: icon, name, publisher, version, architecture badge, framework tags
-- [ ] Search box bound to FTS5 query
-- [ ] Sort dropdown (name / size / install date / architecture)
-- [ ] Filter flyout (architecture checkboxes, framework multi-select)
-- [ ] Loading state with progress ring during initial scan
-- [ ] Empty state view
-
-### App Detail Page
-- [ ] Navigation from list row → detail page (pass app id)
-- [ ] **Info tab**: name, version, publisher, install path, size, install date, source badge
-- [ ] **Dependencies tab**: TreeView of DLLs; resolved path; missing badge in red
-- [ ] **Imports/Exports tab**: ListView of functions grouped by DLL
-- [ ] **Features tab**: framework tag chips, architecture, signing status, installer type
-- [ ] **Resources tab**: manifest text view, version info key-value table, icon preview
-
-### Stats Page
-- [ ] Architecture distribution pie chart (LiveChartsCore)
-- [ ] Top frameworks bar chart (count of apps per framework)
-- [ ] Total app count, total dependency count, missing dependency count
-
-### Shell / Navigation
-- [ ] `NavigationView` shell with pages: Apps, Stats, Snapshots, Settings
-- [ ] Title bar customization (WinUI 3 custom title bar)
-- [ ] Window size/position persistence
+| Layer | Technology |
+|---|---|
+| UI | WinUI 3 + CommunityToolkit.WinUI |
+| Architecture pattern | MVVM (CommunityToolkit.Mvvm) |
+| Language | C# / .NET 9 |
+| PE Parsing | AsmResolver + dnlib |
+| Win32 Interop | CsWin32 |
+| App Enumeration | Win32 Registry + WMI + AppX APIs |
+| Framework Detection | Detect-It-Easy (CLI shim → custom rules) |
+| Database | SQLite (Microsoft.Data.Sqlite + Dapper) |
+| Search | ripgrep (file search) + SQLite FTS5 (app index) |
+| Charts | LiveChartsCore (SkiaSharp/WinUI backend) |
 
 ---
 
-## Phase 2–6 (High-Level, Not Yet Granular)
+## Getting Started
 
-### Phase 2 — Framework Detection
-- [ ] Complete detection rules for all frameworks listed in README
-- [ ] Rules bundle SQLite import pipeline
-- [ ] Library stats page
+### Requirements
+- Windows 10 22H2 or Windows 11
+- .NET 10 Runtime
+- Visual Studio 2026 with WinUI/WinAppSDK workload
 
-### Phase 3 — Deep Inspection
-- [ ] Code signing via WinVerifyTrust
-- [ ] Installer type detection
-- [ ] UWP capability declarations
+### Build
 
-### Phase 4 — Snapshots & Diff
-- [ ] Snapshot engine
-- [ ] Diff computation and UI
+```bash
+git clone https://github.com/yourname/winchecker
+cd winchecker
+dotnet restore
+dotnet build
+```
 
-### Phase 5 — Search & Sources
-- [ ] Install source detection (winget, Chocolatey, Store)
-- [ ] ripgrep integration
-- [ ] Advanced filter panel
+### Run
 
-### Phase 6 — Own the Rules Engine
-- [ ] Custom detection rules format and engine
-- [ ] Community rules bundle repo
-- [ ] Rules update mechanism
+```bash
+dotnet run --project src/WinChecker.App
+```
+
+---
+
+## Project Structure
+
+```
+winchecker/
+├── src/
+│   ├── WinChecker.App/          # WinUI 3 frontend
+│   ├── WinChecker.Core/         # Business logic, models
+│   ├── WinChecker.PE/           # PE parsing layer
+│   ├── WinChecker.Enumeration/  # App discovery (registry, WMI, AppX)
+│   ├── WinChecker.Detection/    # Framework/runtime detection engine
+│   └── WinChecker.Data/         # SQLite, rules bundle, snapshots
+├── rules/                        # Community rules bundle (JSON → SQLite)
+├── tests/
+└── docs/
+```
+
+---
+
+## Inspiration & Prior Art
+
+- [LibChecker](https://github.com/LibChecker/LibChecker) — the Android original
+- [Dependencies](https://github.com/lucasg/Dependencies) — open-source WPF dependency walker; reference for PE resolution logic
+- [Detect-It-Easy](https://github.com/horsicq/Detect-It-Easy) — packer/compiler/framework detection signatures
+- [CFF Explorer](https://ntcore.com/explorer-suite/) — classic PE editor
+
+---
+
+## License
+
+MIT

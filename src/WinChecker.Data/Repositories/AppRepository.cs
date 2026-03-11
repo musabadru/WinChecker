@@ -1,5 +1,6 @@
 using Dapper;
 using Microsoft.Data.Sqlite;
+using WinChecker.Core;
 using WinChecker.Core.Models;
 using WinChecker.Core.Repositories;
 
