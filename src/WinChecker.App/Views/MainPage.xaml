@@ -68,10 +68,16 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <FontIcon Glyph="&#xE7AC;" Grid.Column="0" 
-                                      FontSize="20"
-                                      VerticalAlignment="Center"
-                                      Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
+                            <Grid Grid.Column="0" Width="32" Height="32" VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE7AC;" 
+                                          FontSize="20"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
+                                <Image Source="{x:Bind IconPath, Mode=OneWay}" 
+                                       Stretch="Uniform"
+                                       Width="32" Height="32"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
 
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                 <TextBlock Text="{x:Bind Name}" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
