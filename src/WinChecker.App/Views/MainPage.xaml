@@ -79,13 +79,14 @@
                             </StackPanel>
 
                             <Border Grid.Column="2" 
-                                    Background="{ThemeResource SystemFillColorAttentionLowBrush}"
+                                    Background="{ThemeResource SystemAccentColor}"
+                                    Opacity="0.8"
                                     CornerRadius="4" 
                                     Padding="8,2"
                                     VerticalAlignment="Center">
                                 <TextBlock Text="{x:Bind Architecture}" 
                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource SystemFillColorAttentionBrush}"/>
+                                           Foreground="White"/>
                             </Border>
                         </Grid>
                     </Border>

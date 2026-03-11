@@ -30,7 +30,6 @@ namespace WinChecker.App
 
         private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
         {
-            // Try to log the exception before it dies
             try
             {
                 var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinChecker");
@@ -47,13 +46,11 @@ namespace WinChecker.App
             try
             {
                 ConfigureServices();
-                
                 Services.GetRequiredService<DatabaseMigrator>().Migrate();
 
                 _window = new Window();
-                
-                // Temporarily disable extension into title bar to debug
-                // _window.ExtendsContentIntoTitleBar = true;
+                _window.ExtendsContentIntoTitleBar = true;
+                _window.SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
 
                 if (_window.Content is not Frame rootFrame)
                 {
@@ -67,7 +64,6 @@ namespace WinChecker.App
             catch (Exception ex)
             {
                 Debug.WriteLine($"Startup failed: {ex}");
-                // Last ditch log
                 try { File.AppendAllText("startup_crash.log", ex.ToString()); } catch { }
             }
         }
@@ -81,7 +77,6 @@ namespace WinChecker.App
             var dbPath = Path.Combine(appDataPath, "winchecker.db");
             var connectionString = $"Data Source={dbPath}";
 
-            // Core and Data Services
             services.AddSingleton(new DatabaseMigrator(connectionString));
             services.AddSingleton<IAppRepository>(new AppRepository(connectionString));
             services.AddSingleton<Win32AppEnumerator>();
@@ -89,8 +84,6 @@ namespace WinChecker.App
             services.AddSingleton<IAppScannerService, AppScannerService>();
             services.AddSingleton<IDllResolver, DllResolver>();
             services.AddSingleton<IPeParser, PeParser>();
-
-            // ViewModels
             services.AddTransient<AppListViewModel>();
 
             Services = services.BuildServiceProvider();
