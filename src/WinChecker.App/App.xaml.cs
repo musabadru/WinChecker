@@ -1,4 +1,8 @@
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using WinChecker.Data;
+using System.IO;
 
 namespace WinChecker.App
 {
@@ -9,6 +13,8 @@ namespace WinChecker.App
     {
         private Window window = Window.Current;
 
+        public static IHost Host { get; private set; } = null!;
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -16,6 +22,24 @@ namespace WinChecker.App
         public App()
         {
             this.InitializeComponent();
+
+            Host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) =>
+                {
+                    // Core and Data Services
+                    var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinChecker");
+                    Directory.CreateDirectory(appDataPath);
+                    var dbPath = Path.Combine(appDataPath, "winchecker.db");
+                    var connectionString = $"Data Source={dbPath}";
+                    
+                    services.AddSingleton(new DatabaseMigrator(connectionString));
+                    
+                    // ViewModels
+                    
+                    // Views
+                    services.AddTransient<MainPage>();
+                })
+                .Build();
         }
 
         /// <summary>
@@ -25,6 +49,8 @@ namespace WinChecker.App
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
+            Host.Services.GetRequiredService<DatabaseMigrator>().Migrate();
+
             window ??= new Window();
 
             if (window.Content is not Frame rootFrame)

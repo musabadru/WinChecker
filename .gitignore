@@ -3,3 +3,24 @@ bin/
 obj/
 *.user
 *.suo
+
+# IDE
+.claude/
+.idea/
+.vscode/
+
+# Build
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.sln.doccache
+*.sln.user
+.vs/
+_ReSharper*/
+
+# Packages
+packages/
+*.nupkg
+project.assets.json
+project.lock.json
