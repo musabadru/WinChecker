@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="0.1.1"></a>
+## [0.1.1](https://www.github.com/musabadru/WinChecker/releases/tag/v0.1.1) (2026-03-11)
+
+### Bug Fixes
+
+* zip publish output to avoid duplicate asset names in release ([d2b1068](https://www.github.com/musabadru/WinChecker/commit/d2b10688c4b36da5596995def3bcb78668bb5d18))
+
 <a name="0.1.0"></a>
 ## [0.1.0](https://www.github.com/musabadru/WinChecker/releases/tag/v0.1.0) (2026-03-11)
 
