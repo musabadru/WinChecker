@@ -17,7 +17,9 @@ namespace WinChecker.App
     /// </summary>
     public partial class App : Application
     {
-        private Window window = Window.Current;
+        private Window? _window;
+
+        public Window? MainWindow => _window;
 
         public static IHost Host { get; private set; } = null!;
 
@@ -64,17 +66,19 @@ namespace WinChecker.App
         {
             Host.Services.GetRequiredService<DatabaseMigrator>().Migrate();
 
-            window ??= new Window();
+            _window = new Window();
+            _window.ExtendsContentIntoTitleBar = true;
+            _window.SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
 
-            if (window.Content is not Frame rootFrame)
+            if (_window.Content is not Frame rootFrame)
             {
                 rootFrame = new Frame();
                 rootFrame.NavigationFailed += OnNavigationFailed;
-                window.Content = rootFrame;
+                _window.Content = rootFrame;
             }
 
             _ = rootFrame.Navigate(typeof(MainPage), e.Arguments);
-            window.Activate();
+            _window.Activate();
         }
 
         /// <summary>

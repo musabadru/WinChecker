@@ -1,5 +1,7 @@
 using WinChecker.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace WinChecker.App.Views
 {
@@ -20,9 +22,19 @@ namespace WinChecker.App.Views
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
+            // Set the drag region for the custom title bar
+            if (AppTitleBar != null)
+            {
+                var app = Application.Current as App;
+                if (app?.MainWindow != null)
+                {
+                    app.MainWindow.SetTitleBar(AppTitleBar);
+                }
+            }
+
             if (ViewModel.Apps.Count == 0)
             {
-                await ViewModel.ScanAppsCommand.ExecuteAsync(null);
+                await ViewModel.ScanAppsAsync();
             }
         }
     }

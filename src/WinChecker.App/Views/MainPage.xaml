@@ -9,25 +9,28 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid Margin="32">
+    <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="32"/> <!-- Title Bar Drag Area -->
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Custom Title Bar Drag Area -->
+        <Border Grid.Row="0" x:Name="AppTitleBar" Background="Transparent"/>
+
         <!-- 3. Page Header -->
-        <StackPanel Grid.Row="0" Spacing="8">
+        <StackPanel Grid.Row="1" Margin="32,8,32,0" Spacing="8">
             <TextBlock Text="Installed Applications" Style="{ThemeResource TitleLargeTextBlockStyle}"/>
             <TextBlock Text="Browse and analyze installed Win32 and UWP applications on your system." 
                        Style="{ThemeResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
         </StackPanel>
 
-        <!-- 5. List Toolbar (Search & Filter) -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,24,0,12" Spacing="12">
+        <!-- 5. List Toolbar -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="32,24,32,12" Spacing="12">
             <AutoSuggestBox PlaceholderText="Search applications..." 
                             Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            QueryIcon="Find"
                             Width="300"
                             VerticalAlignment="Center"/>
             <Button Command="{x:Bind ViewModel.ScanAppsCommand}"
@@ -46,13 +49,12 @@
         </StackPanel>
 
         <!-- 5. List View -->
-        <ListView Grid.Row="2"
+        <ListView Grid.Row="3"
                   ItemsSource="{x:Bind ViewModel.Apps}"
                   SelectionMode="None"
-                  Margin="0,12,0,0">
+                  Margin="32,12,32,0">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:InstalledApp">
-                    <!-- Card Pattern (Surface and Background) -->
                     <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                             BorderThickness="1"
@@ -66,7 +68,6 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- 13. Icons -->
                             <FontIcon Glyph="&#xE7AC;" Grid.Column="0" 
                                       FontSize="20"
                                       VerticalAlignment="Center"
@@ -74,14 +75,9 @@
 
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                 <TextBlock Text="{x:Bind Name}" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{x:Bind Publisher}" Style="{ThemeResource CaptionTextBlockStyle}"/>
-                                    <TextBlock Text="•" Style="{ThemeResource CaptionTextBlockStyle}"/>
-                                    <TextBlock Text="{x:Bind Version}" Style="{ThemeResource CaptionTextBlockStyle}"/>
-                                </StackPanel>
+                                <TextBlock Text="{x:Bind Publisher}" Style="{ThemeResource CaptionTextBlockStyle}"/>
                             </StackPanel>
 
-                            <!-- Badge for Architecture -->
                             <Border Grid.Column="2" 
                                     Background="{ThemeResource SystemFillColorAttentionLowBrush}"
                                     CornerRadius="4" 
@@ -102,14 +98,5 @@
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>
-
-        <!-- 12. Empty State -->
-        <StackPanel Grid.Row="2" 
-                    Visibility="{x:Bind ViewModel.Apps.Count, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter='Inverted', Mode=OneWay}"
-                    VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
-            <FontIcon Glyph="&#xE9CE;" FontSize="64" Foreground="{ThemeResource TextFillColorDisabledBrush}"/>
-            <TextBlock Text="No applications found" Style="{ThemeResource BodyStrongTextBlockStyle}" HorizontalAlignment="Center"/>
-            <Button Content="Start Initial Scan" Command="{x:Bind ViewModel.ScanAppsCommand}" HorizontalAlignment="Center"/>
-        </StackPanel>
     </Grid>
 </Page>

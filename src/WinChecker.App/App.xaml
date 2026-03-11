@@ -5,14 +5,44 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:WinChecker.App"
+    xmlns:converters="using:WinChecker.App.Converters"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <ResourceDictionary Source="Styles/DesignSystem.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter" />
+
+            <!-- Spacing System (from DESIGN_GUIDE.md) -->
+            <Thickness x:Key="MicroSpacing">4</Thickness>
+            <Thickness x:Key="ControlSpacing">8</Thickness>
+            <Thickness x:Key="CardPadding">16</Thickness>
+            <Thickness x:Key="SectionSpacing">24</Thickness>
+            <Thickness x:Key="PageMargin">32</Thickness>
+
+            <!-- Typography Aliases -->
+            <!-- We can't easily alias StaticResource in Application.Resources like this if they are not defined yet, 
+                 but these are system resources so it might be okay. 
+                 Actually, let's just use the ThemeResource keys directly in XAML if this fails. -->
+
+            <!-- Card Style -->
+            <Style x:Key="SurfaceCardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="16" />
+            </Style>
+
+            <!-- App Icon Styles -->
+            <Style x:Key="ListIconStyle" TargetType="FontIcon">
+                <Setter Property="FontFamily" Value="{ThemeResource SymbolThemeFontFamily}" />
+                <Setter Property="FontSize" Value="20" />
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>
