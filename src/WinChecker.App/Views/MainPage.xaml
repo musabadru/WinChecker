@@ -75,7 +75,9 @@
                              Margin="1,-6,1,0" Canvas.ZIndex="1"/>
 
                 <ListView ItemsSource="{x:Bind ViewModel.Apps}"
-                          SelectionMode="None"
+                          SelectionMode="Single"
+                          IsItemClickEnabled="True"
+                          ItemClick="OnAppClicked"
                           Padding="0,0,0,12">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="models:InstalledApp">

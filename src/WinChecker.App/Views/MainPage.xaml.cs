@@ -2,6 +2,7 @@ using WinChecker.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using WinChecker.Core;
 
 namespace WinChecker.App.Views
 {
@@ -25,6 +26,14 @@ namespace WinChecker.App.Views
             if (ViewModel.Apps.Count == 0)
             {
                 await ViewModel.ScanAppsAsync();
+            }
+        }
+
+        private void OnAppClicked(object sender, ItemClickEventArgs e)
+        {
+            if (e.ClickedItem is InstalledApp app)
+            {
+                this.Frame.Navigate(typeof(AppDetailPage), app);
             }
         }
     }

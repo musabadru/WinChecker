@@ -84,7 +84,9 @@ namespace WinChecker.App
 
                         // ViewModels
                         services.AddTransient<AppListViewModel>();
+                        services.AddTransient<AppDetailViewModel>();
                         services.AddTransient<MainPage>();
+                        services.AddTransient<AppDetailPage>();
                     })
                     .Build();
 
