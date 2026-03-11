@@ -24,6 +24,8 @@ namespace WinChecker.App.Views
                     app.MainWindow.SetTitleBar(AppTitleBar);
                 }
             }
+            // SelectedItem set in ctor doesn't fire SelectionChanged — navigate explicitly
+            ContentFrame.Navigate(typeof(MainPage));
         }
 
         private void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

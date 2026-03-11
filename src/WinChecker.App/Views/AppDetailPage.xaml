@@ -42,7 +42,7 @@
                               HorizontalAlignment="Center" VerticalAlignment="Center"
                               Foreground="{ThemeResource AccentFillColorDefaultBrush}"
                               Opacity="0.2"/>
-                    <Image Source="{x:Bind ViewModel.App.IconPath, Mode=OneWay}" 
+                    <Image Source="{x:Bind ViewModel.App.IconPath, Converter={StaticResource PathToImageSourceConverter}, Mode=OneWay}"
                            Stretch="Uniform" Width="60" Height="60"/>
                 </Grid>
 
@@ -148,9 +148,8 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         
-                                        <FontIcon Grid.Column="0" Glyph="&#xE168;" FontSize="16" 
-                                                  Foreground="{ThemeResource AccentFillColorDefaultBrush}"
-                                                  Opacity="{x:Bind IsMissing, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter='Inverted', Mode=OneWay}"/>
+                                        <FontIcon Grid.Column="0" Glyph="&#xE168;" FontSize="16"
+                                                  Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
                                         
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold"/>

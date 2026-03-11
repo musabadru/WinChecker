@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using WinChecker.Core;
 using WinChecker.Core.Repositories;
@@ -29,7 +30,8 @@ public class AppScannerServiceTests
             new Win32AppEnumerator(),
             new UwpAppEnumerator(),
             _iconService,
-            _repository);
+            _repository,
+            NullLogger<AppScannerService>.Instance);
     }
 
     [Test]

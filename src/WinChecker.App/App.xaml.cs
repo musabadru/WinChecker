@@ -12,6 +12,8 @@ using WinChecker.PE;
 using WinChecker.App.ViewModels;
 using System.IO;
 using System.Diagnostics;
+using Serilog;
+using Serilog.Events;
 
 namespace WinChecker.App
 {
@@ -51,12 +53,23 @@ namespace WinChecker.App
         {
             try
             {
+                var logPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "WinChecker", "logs", "winchecker-.log");
+
+                Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                    .Enrich.FromLogContext()
+                    .WriteTo.File(logPath, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7,
+                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
+#if DEBUG
+                    .WriteTo.Debug()
+#endif
+                    .CreateLogger();
+
                 _host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
-                    .ConfigureLogging(builder =>
-                    {
-                        builder.AddDebug();
-                        builder.AddConsole();
-                    })
+                    .UseSerilog()
                     .ConfigureServices((context, services) =>
                     {
                         var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinChecker");
@@ -93,14 +106,15 @@ namespace WinChecker.App
                 await _host.StartAsync();
 
                 // Run migration on background thread; await so the DB is ready before first navigation
+                var sw = Stopwatch.StartNew();
                 try
                 {
                     await Task.Run(() => Services.GetRequiredService<DatabaseMigrator>().Migrate());
+                    Log.Information("Migration completed in {Elapsed}ms", sw.ElapsedMilliseconds);
                 }
                 catch (Exception ex)
                 {
-                    var logger = Services.GetService<ILogger<App>>();
-                    logger?.LogError(ex, "Database migration failed.");
+                    Log.Error(ex, "Migration failed after {Elapsed}ms", sw.ElapsedMilliseconds);
                 }
 
                 _window = new Window();
@@ -145,6 +159,7 @@ namespace WinChecker.App
                 await _host.StopAsync();
                 _host.Dispose();
             }
+            Log.CloseAndFlush();
         }
     }
 }
