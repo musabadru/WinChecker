@@ -33,15 +33,19 @@ jobs:
 
       - name: Run Versionize
         id: versionize
-        run: |
-          dotnet versionize --changelog-all
-          $version = dotnet versionize --inspect
-          echo "version=$version" >> $env:GITHUB_OUTPUT
+        run: dotnet versionize --changelog-all
         continue-on-error: true  # skips if no releasable commits
 
       - name: Push changes and tag
         if: steps.versionize.outcome == 'success'
         run: git push --follow-tags origin main
+
+      - name: Get version from tag
+        id: get_version
+        if: steps.versionize.outcome == 'success'
+        run: |
+          $version = git describe --tags --abbrev=0
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Build
         if: steps.versionize.outcome == 'success'
@@ -56,11 +60,10 @@ jobs:
 
       - name: Create GitHub Release
         if: steps.versionize.outcome == 'success'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: "v${{ steps.versionize.outputs.version }}"
-          body_path: CHANGELOG.md
-          files: |
+        run: |
+          gh release create "${{ steps.get_version.outputs.version }}" `
+            --title "${{ steps.get_version.outputs.version }}" `
+            --notes-file CHANGELOG.md `
             ./publish/**
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
