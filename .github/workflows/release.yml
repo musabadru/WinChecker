@@ -4,18 +4,19 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   release:
     runs-on: windows-latest
     permissions:
-      contents: write  # needed to push tags + create releases
+      contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # full history required for changelog
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup .NET
@@ -24,7 +25,7 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Install Versionize
-        run: dotnet tool restore
+        run: dotnet tool install --global versionize
 
       - name: Configure Git
         run: |
@@ -33,19 +34,19 @@ jobs:
 
       - name: Run Versionize
         id: versionize
-        run: dotnet versionize --changelog-all
-        continue-on-error: true  # skips if no releasable commits
+        run: versionize --changelog-all
+        continue-on-error: true
 
       - name: Push changes and tag
         if: steps.versionize.outcome == 'success'
         run: git push --follow-tags origin main
 
-      - name: Get version from tag
+      - name: Get version
         id: get_version
         if: steps.versionize.outcome == 'success'
         run: |
-          $version = git describe --tags --abbrev=0
-          echo "version=$version" >> $env:GITHUB_OUTPUT
+          $tag = git describe --tags --abbrev=0
+          echo "version=$tag" >> $env:GITHUB_OUTPUT
 
       - name: Build
         if: steps.versionize.outcome == 'success'
@@ -53,17 +54,13 @@ jobs:
 
       - name: Publish
         if: steps.versionize.outcome == 'success'
-        run: |
-          dotnet publish --configuration Release `
-            --output ./publish `
-            --no-build
+        run: dotnet publish --configuration Release --output ./publish --no-build
 
       - name: Create GitHub Release
         if: steps.versionize.outcome == 'success'
-        run: |
-          gh release create "${{ steps.get_version.outputs.version }}" `
-            --title "${{ steps.get_version.outputs.version }}" `
-            --notes-file CHANGELOG.md `
-            ./publish/**
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ steps.get_version.outputs.version }}"
+          $files = Get-ChildItem ./publish -Recurse -File | Select-Object -ExpandProperty FullName
+          gh release create $tag --title $tag --notes-file CHANGELOG.md @files
