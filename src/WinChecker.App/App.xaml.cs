@@ -7,6 +7,7 @@ using WinChecker.Core.Repositories;
 using WinChecker.Data.Repositories;
 using WinChecker.Enumeration;
 using WinChecker.PE;
+using WinChecker.App.ViewModels;
 using System.IO;
 
 namespace WinChecker.App
@@ -46,6 +47,7 @@ namespace WinChecker.App
                     services.AddSingleton<IPeParser, PeParser>();
                     
                     // ViewModels
+                    services.AddTransient<AppListViewModel>();
                     
                     // Views
                     services.AddTransient<MainPage>();
