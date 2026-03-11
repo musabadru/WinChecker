@@ -98,5 +98,14 @@
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>
+
+        <!-- 12. Empty State -->
+        <StackPanel Grid.Row="3" 
+                    Visibility="{x:Bind ViewModel.Apps.Count, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter='Inverted', Mode=OneWay}"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
+            <FontIcon Glyph="&#xE9CE;" FontSize="64" Foreground="{ThemeResource TextFillColorDisabledBrush}"/>
+            <TextBlock Text="No applications found" Style="{ThemeResource BodyStrongTextBlockStyle}" HorizontalAlignment="Center"/>
+            <Button Content="Start Initial Scan" Command="{x:Bind ViewModel.ScanAppsCommand}" HorizontalAlignment="Center"/>
+        </StackPanel>
     </Grid>
 </Page>

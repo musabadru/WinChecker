@@ -37,6 +37,10 @@ public partial class AppListViewModel : ObservableObject
                 Apps.Add(app);
             }
         }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Scan failed: {ex}");
+        }
         finally
         {
             IsLoading = false;

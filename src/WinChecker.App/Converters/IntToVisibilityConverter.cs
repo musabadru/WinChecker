@@ -7,8 +7,9 @@ public class IntToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        bool isInverted = parameter as string == "Inverted";
-        int count = (int)value;
+        if (value is not int count) return Visibility.Collapsed;
+
+        bool isInverted = parameter?.ToString() == "Inverted";
         bool isVisible = count > 0;
 
         if (isInverted)
