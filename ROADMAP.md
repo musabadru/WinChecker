@@ -7,12 +7,12 @@ WinChecker is built in focused phases. Each phase ships something independently 
 ## Phase 1 — Core Loop (v0.1)
 > Goal: A useful app browser with PE inspection. Shippable as a dev tool.
 
-- [ ] Enumerate all installed Win32 apps from registry (`HKLM/HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall`)
-- [ ] Enumerate UWP/MSIX packages via AppX APIs
-- [ ] Parse PE headers for each app binary (architecture, subsystem, linker version) using AsmResolver
+- [x] Enumerate all installed Win32 apps from registry (`HKLM/HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall`)
+- [x] Enumerate UWP/MSIX packages via AppX APIs
+- [x] Parse PE headers for each app binary (architecture, subsystem, linker version) using AsmResolver
 - [ ] Show app list with icon, name, version, publisher, architecture badge
 - [ ] Basic app detail page: Info tab + Dependencies tab (raw DLL list)
-- [ ] SQLite database bootstrapped (app index, schema v1)
+- [x] SQLite database bootstrapped (app index, schema v1)
 - [ ] Resolve DLL paths using Windows loader rules (KnownDLLs, PATH, SxS)
 - [ ] Flag missing/unresolvable dependencies
 - [ ] Architecture distribution pie chart (LiveChartsCore)

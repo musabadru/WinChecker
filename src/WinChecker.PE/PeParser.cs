@@ -13,11 +13,19 @@ namespace WinChecker.PE;
 
 public class PeParser : IPeParser
 {
+    private readonly IDllResolver _dllResolver;
+
+    public PeParser(IDllResolver dllResolver)
+    {
+        _dllResolver = dllResolver;
+    }
+
     public async Task<PeMetadata> ParseMetadataAsync(string filePath)
     {
         return await Task.Run(() =>
         {
             var metadata = new PeMetadata();
+            var appDirectory = Path.GetDirectoryName(filePath) ?? string.Empty;
 
             try
             {
@@ -46,10 +54,15 @@ public class PeParser : IPeParser
                 // Dependencies (Imports)
                 foreach (var module in peImage.Imports)
                 {
+                    var dllName = module.Name ?? "Unknown";
+                    var resolvedPath = _dllResolver.ResolveDllPath(dllName, appDirectory, metadata.Architecture);
+                    
                     metadata.Dependencies.Add(new DependencyInfo
                     {
-                        Name = module.Name ?? "Unknown",
-                        IsApiSet = module.Name?.StartsWith("api-ms-win-") ?? false
+                        Name = dllName,
+                        ResolvedPath = resolvedPath,
+                        IsMissing = resolvedPath == null,
+                        IsApiSet = dllName?.StartsWith("api-ms-win-", StringComparison.OrdinalIgnoreCase) ?? false
                     });
                 }
 

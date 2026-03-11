@@ -42,6 +42,7 @@ namespace WinChecker.App
                     services.AddSingleton<Win32AppEnumerator>();
                     services.AddSingleton<UwpAppEnumerator>();
                     services.AddSingleton<IAppScannerService, AppScannerService>();
+                    services.AddSingleton<IDllResolver, DllResolver>();
                     services.AddSingleton<IPeParser, PeParser>();
                     
                     // ViewModels
