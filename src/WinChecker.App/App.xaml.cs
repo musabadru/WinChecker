@@ -33,6 +33,8 @@ namespace WinChecker.App
                     var connectionString = $"Data Source={dbPath}";
                     
                     services.AddSingleton(new DatabaseMigrator(connectionString));
+                    services.AddSingleton<IAppRepository>(new AppRepository(connectionString));
+                    services.AddSingleton<Win32AppEnumerator>();
                     
                     // ViewModels
                     
